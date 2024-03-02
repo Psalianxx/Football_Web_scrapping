@@ -1,0 +1,47 @@
+import pandas as pd
+from bs4 import BeautifulSoup
+import smtplib
+import time
+import datetime
+import requests
+url = 'https://www.transfermarkt.co.in/fc-barcelona/kader/verein/131/saison_id/2023/plus/1'
+
+headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36", "Accept-Encoding":"gzip, deflate", "Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", "DNT":"1","Connection":"close", "Upgrade-Insecure-Requests":"1"}
+
+
+source = requests.get(url, headers = headers)
+
+
+soup = BeautifulSoup(source.text, 'html.parser')
+#print(soup)
+table = soup.find('div',class_ = 'responsive-table')
+t_name = table.find_all('th')
+
+#print(t_name)
+
+Title = [name.text.strip() for name in t_name ]
+#print(Title)
+
+import pandas as pd
+df = pd.DataFrame(columns = ['Jersey number', 'Player ', 'Postion','Date of birth/Age', 'Height','Foot', 'Joined','Contract','Market value'  ])
+
+df
+
+
+column_row = table.find_all('tr')
+players = []
+#print(column_row)
+for row in column_row[1:]:
+    row_data = row.find_all('td')
+    individual_data = [data.text.strip() for data in row_data ]
+    if len(individual_data)>2:
+        player = {"Jersey number": individual_data[0],"Player": individual_data[3],"Postion": individual_data[4],"Date of Birth/Age": individual_data[5],"Height": individual_data[7], "Foot": individual_data[8], "Joined": individual_data[9],"Contract": individual_data[11],"Market value": individual_data[-1]}
+        players.append(player)
+        
+        
+    
+        
+df = pd.DataFrame.from_dict(players)
+df.style
+
+df.to_csv('Player.csv',encoding='utf-8-sig', index = False)
